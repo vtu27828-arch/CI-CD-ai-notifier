@@ -1,0 +1,24 @@
+// Example pipeline: sends every failed build to BuildGuard AI.
+// 1) Jenkins > Manage Credentials > add "Secret text" with ID  buildguard-token  (= JENKINS_TOKEN from backend/.env)
+// 2) Replace BUILDGUARD_URL with a URL Jenkins can reach (http://<your-laptop-ip>:8000 if Jenkins is in Docker/another machine)
+pipeline {
+  agent any
+  environment { BUILDGUARD_URL = 'http://host.docker.internal:8000' }
+  stages {
+    stage('Checkout') { steps { checkout scm } }
+    stage('Install Dependencies') { steps { sh 'pip install -r requirements.txt' } }
+    stage('Test') { steps { sh 'pytest' } }
+  }
+  post {
+    failure {
+      script {
+        def payload = groovy.json.JsonOutput.toJson([
+          job: env.JOB_NAME, build_number: env.BUILD_NUMBER, status: 'FAILURE',
+          branch: env.BRANCH_NAME ?: 'main', commit: env.GIT_COMMIT ?: '', build_url: env.BUILD_URL ])
+        withCredentials([string(credentialsId: 'buildguard-token', variable: 'TOKEN')]) {
+          sh "curl -s -X POST ${BUILDGUARD_URL}/api/webhooks/jenkins -H 'Content-Type: application/json' -H \"X-Jenkins-Token: $TOKEN\" -d '${payload}'"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,42 @@
+BUILDGUARD AI — START HERE (Windows)
+
+IMPORTANT: The ZIP contains the website source code. Run it on your laptop using the steps below.
+
+1) Install Python 3.10+ and Node.js 18+ (LTS). Restart VS Code/Terminal after installation.
+2) Extract this ZIP to a simple folder, for example C:\BuildGuardAI.
+3) Open the extracted cicd-ai-notifier folder in VS Code.
+4) Open Terminal > New Terminal. Start the backend:
+   cd backend
+   python -m venv venv
+   .\venv\Scripts\Activate.ps1
+   pip install -r requirements.txt
+   Copy-Item .env.example .env
+   uvicorn app.main:app --reload --port 8000
+   Keep this terminal running.
+5) Open a SECOND terminal in VS Code. Start the frontend:
+   cd frontend
+   npm install
+   npm run dev
+   Keep this terminal running.
+6) Open http://localhost:5173 in Chrome or Edge.
+
+DEMO LOGIN:
+Admin: admin@demo.dev
+Password: Admin@123
+
+Developer: dev@demo.dev
+Password: Dev@12345
+
+DEMO MODE works without Jenkins or a Claude API key. Go to Projects and choose
+"Simulate failed build" to test the failure-analysis and notification workflow.
+
+API health check: http://localhost:8000/api/health
+API documentation: http://localhost:8000/docs
+
+If PowerShell blocks activation, run this once in the terminal:
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+Then activate the venv again.
+
+Keep both terminals open while using the website. Ctrl+C stops a server.
+Do not share real API keys or passwords. Add Claude/Jenkins/SMTP credentials
+only in the backend .env or the application's Settings page as documented.
